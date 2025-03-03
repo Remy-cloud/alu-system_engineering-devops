@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-"Script that creates a new ssh key pair"
+"This script generates a 4096-bit RSA key pair named "school" with the passphrase betty"
 
-ssh-keygen -t rsa -b 4096 -m PEM -f school -N "betty"
+ssh-keygen -t rsa -b 4096 -f school -N "betty"
