@@ -1,31 +1,30 @@
 #!/usr/bin/env bash
-# This script installs and configures Nginx to perform a 301 redirection on /redirect_me
+# Configure new nginx server, /redirect_me redirecting to another page.
 
-# Update package lists
-sudo apt-get update -y
-
-# Install Nginx if it's not already installed
-sudo apt-get install nginx -y
-
-# Ensure Nginx is running and enabled on boot
-sudo service nginx start
-update-rc.d nginx defaults
-
-# Backup the original default config
-sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
-
-# Use sed to add the 301 redirection rule under the server block
-sudo sed -i '/server {/a \\\n    location /redirect_me { \n        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4; \n    }' /etc/nginx/sites-available/default
-
-# Check if the location block was correctly added
-echo "Checking if the redirection rule is added:"
-grep "location /redirect_me" /etc/nginx/sites-available/default
-
-# Allow Nginx through the firewall
+apt-get update
+apt-get -y install nginx
 sudo ufw allow 'Nginx HTTP'
+mkdir -p /var/www/html/
+sudo chmod -R 755 /var/www
+echo 'Hello World!' >/var/www/html/index.html
+SERVER_CONFIG="server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+	location / {
+		try_files \$uri \$uri/ =404;
+	}
+	if (\$request_filename ~ redirect_me){
+		rewrite ^ https://www.youtube.com/watch?v=dQw4w9WgXcQ permanent;
+	}
+}"
 
-# Test Nginx configuration for syntax errors
-sudo nginx -t
+bash -c "echo -e '$SERVER_CONFIG' > /etc/nginx/sites-enabled/default"
 
-# Restart Nginx to apply the changes (without using systemctl)
-sudo service nginx restart
+if [ "$(pgrep -c nginx)" -le 0 ]; then
+  service nginx start
+else
+  service nginx restart
+fi
