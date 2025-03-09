@@ -1,49 +1,30 @@
 #!/usr/bin/env bash
-# Configure a new Nginx server on macOS, with /redirect_me redirecting to another page.
+# Configure new nginx server, /redirect_me redirecting to another page.
 
-# Install Nginx using brew
-brew install nginx
-
-# Allow Nginx through the firewall (skip this step on macOS if not needed)
-# sudo ufw allow 'Nginx HTTP' # Skip for macOS
-
-# Set up the root directory and permissions (macOS doesn't use /var/www)
-mkdir -p /usr/local/var/www/html
-sudo chmod -R 755 /usr/local/var/www
-
-# Create the default index.html
-echo 'Hello World!' > /usr/local/var/www/html/index.html
-
-# Define the Nginx configuration to set up redirection
+apt-get update
+apt-get -y install nginx
+sudo ufw allow 'Nginx HTTP'
+mkdir -p /var/www/html/
+sudo chmod -R 755 /var/www
+echo 'Hello World!' >/var/www/html/index.html
 SERVER_CONFIG="server {
-    listen 8080 default_server;
-    listen [::]:8080 default_server;
-    root /usr/local/var/www/html;
-    index index.html index.htm;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-
-    # Redirection for /redirect_me to YouTube with a 301 Moved Permanently
-    location /redirect_me {
-        return 301 https://www.youtube.com/watch?v=dQw4w9WgXcQ;
-    }
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+	location / {
+		try_files \$uri \$uri/ =404;
+	}
+	if (\$request_filename ~ redirect_me){
+		rewrite ^ https://www.youtube.com/watch?v=dQw4w9WgXcQ permanent;
+	}
 }"
 
-# Write the configuration to the default server block
-echo -e "$SERVER_CONFIG" > /usr/local/etc/nginx/nginx.conf
+bash -c "echo -e '$SERVER_CONFIG' > /etc/nginx/sites-enabled/default"
 
-# Test Nginx configuration for syntax errors
-sudo nginx -t
-
-# If the config is correct, restart Nginx to apply the changes
-if [ $? -eq 0 ]; then
-  # Restart Nginx to apply the configuration changes
-  sudo nginx -s reload
+if [ "$(pgrep -c nginx)" -le 0 ]; then
+  service nginx start
 else
-  echo "Nginx configuration test failed!"
-  exit 1
+  service nginx restart
 fi
