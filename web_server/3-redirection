@@ -17,9 +17,12 @@ update-rc.d nginx defaults
 # Backup the original default config
 sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
 
-# Use sed to add the 301 redirection rule
-# Replace the server block to redirect /redirect_me to another page (e.g., http://example.com)
-sudo sed -i '/server {/a \\\n    location /redirect_me { \n        return 301 http://example.com; \n    }' /etc/nginx/sites-available/default
+# Use sed to add the 301 redirection rule if it's not already present
+sudo sed -i '/server {/a \\\n    location /redirect_me { \n        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4; \n    }' /etc/nginx/sites-available/default
+
+# Check if the location block was correctly added
+echo "Checking if the redirection rule is added:"
+grep "location /redirect_me" /etc/nginx/sites-available/default
 
 # Allow Nginx through the firewall
 sudo ufw allow 'Nginx HTTP'
