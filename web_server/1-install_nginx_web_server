@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Script to install and configure Nginx on an Ubuntu server
+
+# Update package lists
+apt-get update -y
+
+# Install Nginx
+apt-get install nginx -y
+
+# Ensure Nginx is running and enabled on boot
+service nginx start
+update-rc.d nginx defaults
+
+# Replace the default index.html with "Holberton School"
+echo "Holberton School" > /var/www/html/index.html
+
+# Restart Nginx 
+service nginx restart
