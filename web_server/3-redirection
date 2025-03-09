@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
-# Configure a new Nginx server, with /redirect_me redirecting to another page.
+# Configure a new Nginx server on macOS, with /redirect_me redirecting to another page.
 
-# Update and install nginx
-apt-get update
-apt-get -y install nginx
+# Install Nginx using brew
+brew install nginx
 
-# Allow Nginx through the firewall
-sudo ufw allow 'Nginx HTTP'
+# Allow Nginx through the firewall (skip this step on macOS if not needed)
+# sudo ufw allow 'Nginx HTTP' # Skip for macOS
 
-# Set up the root directory and permissions
-mkdir -p /var/www/html/
-sudo chmod -R 755 /var/www
+# Set up the root directory and permissions (macOS doesn't use /var/www)
+mkdir -p /usr/local/var/www/html
+sudo chmod -R 755 /usr/local/var/www
 
 # Create the default index.html
-echo 'Hello World!' > /var/www/html/index.html
+echo 'Hello World!' > /usr/local/var/www/html/index.html
 
 # Define the Nginx configuration to set up redirection
 SERVER_CONFIG="server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
+    listen 8080 default_server;
+    listen [::]:8080 default_server;
+    root /usr/local/var/www/html;
+    index index.html index.htm;
+
     server_name _;
 
     location / {
@@ -34,10 +34,7 @@ SERVER_CONFIG="server {
 }"
 
 # Write the configuration to the default server block
-bash -c "echo -e '$SERVER_CONFIG' > /etc/nginx/sites-available/default"
-
-# Create a symbolic link to the sites-enabled directory
-sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+echo -e "$SERVER_CONFIG" > /usr/local/etc/nginx/nginx.conf
 
 # Test Nginx configuration for syntax errors
 sudo nginx -t
@@ -45,7 +42,7 @@ sudo nginx -t
 # If the config is correct, restart Nginx to apply the changes
 if [ $? -eq 0 ]; then
   # Restart Nginx to apply the configuration changes
-  sudo service nginx restart
+  sudo nginx -s reload
 else
   echo "Nginx configuration test failed!"
   exit 1
