@@ -2,17 +2,19 @@
 # Script to install and configure Nginx on an Ubuntu server
 
 # Update package lists
-apt-get update -y
+sudo apt-get update -y
 
 # Install Nginx
-apt-get install nginx -y
+sudo apt-get install nginx -y
 
 # Ensure Nginx is running and enabled on boot
-service nginx start
+sudo service nginx start
 update-rc.d nginx defaults
 
 # Replace the default index.html with "Holberton School"
 echo "Holberton School" > /var/www/html/index.html
 
+sudo ufw allow 'Nginx HTTP'
+
 # Restart Nginx 
-service nginx restart
+sudo service nginx restart
