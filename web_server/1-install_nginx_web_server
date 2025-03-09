@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# Sets up nginx
+# Script to install and configure Nginx on an Ubuntu server
 
-sudo apt-get update
-sudo apt-get install -y nginx
+# Update package lists
+apt-get update -y
 
-sudo service nginx start
+# Install Nginx
+apt-get install nginx -y
 
-echo "Holberton School" | sudo tee /var/www/html/index.html
+# Ensure Nginx is running and enabled on boot
+service nginx start
+update-rc.d nginx defaults
 
-sudo ufw allow 'Nginx HTTP'
+# Replace the default index.html with "Holberton School"
+echo "Holberton School" > /var/www/html/index.html
 
-sudo service nginx restart
+# Restart Nginx 
+service nginx restart
