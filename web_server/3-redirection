@@ -11,13 +11,10 @@ sudo apt-get install nginx -y
 sudo service nginx start
 update-rc.d nginx defaults
 
-# Replace the default configuration to enable redirection using sed
-# This assumes you have a default server block located at /etc/nginx/sites-available/default
-
 # Backup the original default config
 sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
 
-# Use sed to add the 301 redirection rule if it's not already present
+# Use sed to add the 301 redirection rule under the server block
 sudo sed -i '/server {/a \\\n    location /redirect_me { \n        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4; \n    }' /etc/nginx/sites-available/default
 
 # Check if the location block was correctly added
