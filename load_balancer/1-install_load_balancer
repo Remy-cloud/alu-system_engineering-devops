@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
-# Setup haproxy on server lb-01 to serve web-01 and web-02.
+# Setup HAProxy on server lb-01 to serve web-01 and web-02.
 
-sudo apt-get -y update
-sudo apt-get -y install haproxy
+set -e  # Exit immediately if a command fails
 
-echo \
-"
+# Update and install HAProxy
+sudo apt-get update -y
+sudo apt-get install -y haproxy
+
+# Ensure web-01 and web-02 are resolvable by adding them to /etc/hosts
+echo "3.84.95.54 web-01" | sudo tee -a /etc/hosts
+echo "3.82.241.91 web-02" | sudo tee -a /etc/hosts
+
+# Configure HAProxy
+sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<EOL
 frontend lb-frontend
-        bind *:80
-        mode http
-        default_backend lb-backend
-backend lb-backend
-        balance roundrobin
-        server web-01 web-01:80 check
-        server web-02 web-02:80 check
-" | sudo tee /etc/haproxy/haproxy.cfg  # Overwriting instead of appending
+    bind *:80
+    mode http
+    default_backend lb-backend
 
+backend lb-backend
+    balance roundrobin
+    server web-01 web-01:80 check
+    server web-02 web-02:80 check
+EOL
+
+# Enable HAProxy
 echo "ENABLED=1" | sudo tee /etc/default/haproxy
-sudo service haproxy restart
+
+# Restart HAProxy
+sudo systemctl enable haproxy
+sudo systemctl restart haproxy
+
+echo "HAProxy setup complete!"
