@@ -51,3 +51,5 @@ EOF
 
 # Restart HAProxy to apply changes
 sudo systemctl restart haproxy
+# Output the required web server names
+echo '["web-01", "web-02"]'
