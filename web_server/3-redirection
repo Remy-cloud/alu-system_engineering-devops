@@ -1,37 +1,22 @@
 #!/usr/bin/env bash
-# Configure new Nginx server with /redirect_me redirecting to another page.
+# Configure your Nginx server so that /redirect_me is redirecting to another page
+# The redirection must be a "301 Moved Permanently"
 
-# Update package list and install Nginx
 apt-get update
-apt-get -y install nginx
+apt-get install -y nginx
 
-# Allow HTTP traffic through UFW firewall
-sudo ufw allow 'Nginx HTTP'
+mkdir /etc/nginx/html
+touch /etc/nginx/html/index.html
+echo "Hello World!" > /etc/nginx/html/index.html
+printf %s "server {
+	listen	80;
+	listen 	[::]:80 default_server;
+	root   	/etc/nginx/html;
+	index  	index.html index.htm;
 
-# Create the web root directory if it doesn't exist
-mkdir -p /var/www/html
-echo 'Hello World!' > /var/www/html/index.html
+	location /redirect_me {
+		return 301 https://github.com/;
+	}
+}" > /etc/nginx/sites-available/default
 
-# Configure Nginx to serve the website and handle /redirect_me
-cat <<EOF | sudo tee /etc/nginx/sites-available/default
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    server_name _;
-
-    root /var/www/html;
-    index index.html index.htm;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-
-    location /redirect_me {
-        return 301 https://google.com/;
-    }
-}
-EOF
-
-# Reload Nginx to apply changes
-sudo systemctl restart nginx
+service nginx restart
