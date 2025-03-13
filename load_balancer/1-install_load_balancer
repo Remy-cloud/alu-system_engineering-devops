@@ -5,20 +5,16 @@
 # Exit on error
 set -e
 
-# Update package list
-sudo apt-get update
+# Install HAProxy (on macOS, using Homebrew)
+brew install haproxy
 
-# Install HAProxy
-sudo apt-get -y install haproxy
-
-# Enable HAProxy to start at boot
-sudo systemctl enable haproxy
-
+# Start HAProxy via Homebrew services
+brew services start haproxy
 # Backup existing HAProxy config
-sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
+cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
 
 # Configure HAProxy to distribute traffic using roundrobin
-sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<EOF
+tee /etc/haproxy/haproxy.cfg > /dev/null <<EOF
 global
     log /dev/log local0
     log /dev/log local1 notice
@@ -50,6 +46,7 @@ backend http_back
 EOF
 
 # Restart HAProxy to apply changes
-sudo systemctl restart haproxy
+systemctl restart haproxy
+
 # Output the required web server names
 echo '["web-01", "web-02"]'
