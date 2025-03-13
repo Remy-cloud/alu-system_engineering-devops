@@ -1,41 +1,28 @@
 #!/usr/bin/env bash
-# This script configures Nginx on a fresh Ubuntu server (web-01 and web-02).
-# It ensures HTTP responses contain a custom header: X-Served-By, displaying the server's hostname.
+# Script to configure Nginx with a custom HTTP response header "X-Served-By"
 
-# Exit script on errors
+# Exit on error
 set -e
 
-# Update system and install Nginx
-sudo apt-get update
-sudo apt-get -y install nginx
+# Install Nginx if not installed
+if ! dpkg -l | grep -q nginx; then
+    apt update -y
+    apt install nginx -y
+fi
 
-# Configure firewall
-sudo ufw allow 'Nginx HTTP'
-sudo ufw allow 'OpenSSH'
+# Ensure Nginx is running
+systemctl start nginx
+systemctl enable nginx
 
-# Ensure web root directory exists and create an index.html file
-sudo mkdir -p /var/www/html
-echo 'Hello World!' | sudo tee /var/www/html/index.html
+# Add custom header in the default Nginx configuration
+NGINX_CONF="/etc/nginx/sites-available/default"
 
-# Configure Nginx with the custom header
-sudo tee /etc/nginx/sites-available/default > /dev/null <<EOF
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    server_name _;
-
-    root /var/www/html;
-    index index.html;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-
-    # Custom header to track which server is responding
-    add_header X-Served-By "\$HOSTNAME";
-}
-EOF
+# Check if the header is already set to avoid duplicate entries
+if ! grep -q "add_header X-Served-By" "$NGINX_CONF"; then
+    sed -i '/server_name _;/a \    add_header X-Served-By \"$hostname\";' "$NGINX_CONF"
+fi
 
 # Restart Nginx to apply changes
-sudo systemctl restart nginx
+systemctl restart nginx
+
+echo "Nginx configured successfully with X-Served-By header!"
