@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Configures Nginx with a custom response header "X-Served-By" showing the server hostname
+
+# Update package lists and install Nginx
+apt-get update -y
+apt-get install -y nginx
+
+# Add custom header to Nginx default server block
+echo 'server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index index.html index.htm;
+
+    server_name _;
+
+    location / {
+        add_header X-Served-By '"$(hostname)"';
+        try_files $uri $uri/ =404;
+    }
+}' > /etc/nginx/sites-available/default
+
+# Restart Nginx to apply changes
+systemctl restart nginx
